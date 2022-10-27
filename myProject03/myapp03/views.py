@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 from .forms import UserForm
 from django.contrib.auth import authenticate, login
 
-# from myapp03 import bigdataProcess
+from myapp03 import bigdataProcess
 
 # Create your views here.
 
@@ -24,12 +24,7 @@ UPLOAD_DIR = 'C:/Django_practice/upload/'
 # melon
 def melon(request):
     melonList = bigdataProcess.melon_crawing()
-
-    {'ranking': ranking,
-     'music_name': music_name,
-     'singer': singer,
-     'album': album}
-    return render(request, 'bigdata/melon.html', melonList)
+    return render(request, 'bigdata/melon.html', {'melonList': melonList})
 
 
 #################################
