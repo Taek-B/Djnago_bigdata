@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <table class="table table-hover" style="text-align: center;">
+        <thead>
+            <tr>
+                <th>순위</th>
+                <th>곡명</th>
+                <th>가수</th>
+                <th>앨범</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- for문 시작(django) -->
+            {% for board in boardList %}
+            <tr>
+                <td>{{ board.id}}</td>
+                <td>{{ board.title }}</td>
+                <td>{{ board.writer }}</td>
+                <td>{{ board.post_date | date:'Y-m-d'}}</td>
+                <td>{{ board.hit}}</td>
+                <td>{{ board.filename }}</td>
+                <td>
+                    {% if board.filesize > 0 %}
+                    <span class="_imgs" data-url="/download_count?id={{board.id}}">
+                        <img src="{% static 'images/file_test.png' %}" style="width: 15px;  cursor: pointer;">
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="_downCnt">{{ board.down }}</td>
+            </tr>
+            <!-- for문 끝(django) -->
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
