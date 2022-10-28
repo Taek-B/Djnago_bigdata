@@ -42,4 +42,5 @@ urlpatterns = [
 
     ############################
     path("melon/", views.melon),
+    path("weather/", views.weather),
 ]

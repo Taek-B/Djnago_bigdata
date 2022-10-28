@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-3">
+    <div class="d-flex justify-content-end mb-3">
+        <form action="/weather" class="form-inline mr-3">
+            <input type="text" class="form-control mr-sm-1" id="word" placeholder="Enter Search" name="word"
+                value="{{word}}">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <div>
+        <!-- {% get_static_prefix %} / 경로 / 파일명.확장자 -->
+        <img src="{% get_static_prefix %}images/{{img_data.plot}}" width="100%" height="100%">
+        <img src="{% get_static_prefix %}images/{{img_data.bar}}" width="100%" height="100%">
+        <img src="{% get_static_prefix %}images/{{img_data.pie}}" width="100%" height="100%">
+    </div>
+    <table class="container table table-hover" style="text-align: center;">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>도시</th>
+                <th>날짜</th>
+                <th>날씨상태</th>
+                <th>최고온도</th>
+                <th>최저온도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in result %}
+            <tr>
+                <th>{{i.id}}</th>
+                <th>{{i.city}}</th>
+                <th>{{i.tmef}}</th>
+                <th>{{i.wf}}</th>
+                <th>{{i.tmx}}</th>
+                <th>{{i.tmn}}</th>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

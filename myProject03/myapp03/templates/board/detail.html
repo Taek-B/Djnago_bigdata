@@ -13,7 +13,7 @@
         </tr>
         <tr>
             <th>작성자</th>
-            <td>{{ dto.writer }}</td>
+            <td>{{ dto.writer.username }}</td>
             <th>작성일</th>
             <td>{{ dto.post_date}}</td>
         </tr>
@@ -34,8 +34,10 @@
             </td>
         </tr>
     </table>
+    {% if dto.writer.username == user.username %}
     <button type="button" class="btn btn-outline-primary _update" data-url="/update_form/{{dto.id}}">수정</button>
     <button type="button" class="btn btn-outline-danger _delete" data-url="/delete/{{dto.id}}">삭제</button>
+    {% endif %}
 
     <!-- comment insert -->
     <div class="mt-3">

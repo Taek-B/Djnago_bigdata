@@ -1,11 +1,11 @@
-from django.shortcuts import render
+import django
 
 # Create your views here.
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
-from myapp03.models import Board, Comment
+from myapp03.models import Board, Comment, Forecast
 import math
 import urllib.parse
 from django.core.paginator import Paginator
@@ -14,6 +14,10 @@ from .forms import UserForm
 from django.contrib.auth import authenticate, login
 
 from myapp03 import bigdataProcess
+from django.db.models.aggregates import Count
+import pandas as pd
+# 로그인 체크?
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -27,15 +31,42 @@ def melon(request):
     return render(request, 'bigdata/melon.html', {'melonList': melonList})
 
 
+# weather
+def weather(request):
+    last_date = Forecast.objects.values('tmef').order_by('-tmef')[:1]
+    print('last_date : ', len(last_date))
+    weather = {}
+    bigdataProcess.weather_crawing(last_date, weather)
+    print("last_date query : ", str(last_date.query))
+    for i in weather:
+        for j in weather[i]:
+            dto = Forecast(city=i, tmef=j[0], wf=j[1], tmn=j[2], tmx=j[3])
+            dto.save()
+
+    # 검색
+    word = request.GET.get('word', '')
+
+    result = Forecast.objects.filter(Q(city__contains=word))
+    result_pd = Forecast.objects.filter(Q(city__contains=word)).values(
+        'wf').annotate(dcount=Count('wf')).values("dcount", "wf")
+    print("result_pd query : ", str(result_pd.query))
+
+    df = pd.DataFrame(result_pd)
+    image_dic = bigdataProcess.weather_make_chart(result, df.wf, df.dcount)
+
+    return render(request, 'bigdata/weather_chart.html', {"img_data": image_dic, "result": result})
+
 #################################
 
-
 # index
+
+
 def base(request):
     return render(request, 'base.html')
 
 
 # write_form
+@login_required(login_url='/login/')
 def write_form(request):
     return render(request, 'board/insert.html')
 
@@ -56,7 +87,7 @@ def insert(request):
             fp.write(chunk)
         fp.close()
 
-    dto = Board(writer=request.POST['writer'],
+    dto = Board(writer=request.user,
                 title=request.POST['title'],
                 content=request.POST['content'],
                 filename=fname,
@@ -77,12 +108,12 @@ def list(request):
     if field == 'all':
         # Q
         # '__' : like랑 같다
-        boardCount = Board.objects.filter(Q(writer__contains=word) |
+        boardCount = Board.objects.filter(Q(writer__username__contains=word) |
                                           Q(title__contains=word) |
                                           Q(content__contains=word)).count()
     elif field == 'writer':
         boardCount = Board.objects.filter(
-            Q(writer__contains=word)).count()
+            Q(writer__username__contains=word)).count()
     elif field == 'title':
         boardCount = Board.objects.filter(
             Q(title__contains=word)).count()
@@ -110,12 +141,12 @@ def list(request):
 
     # 검색
     if field == 'all':
-        boardList = Board.objects.filter(Q(writer__contains=word) |
+        boardList = Board.objects.filter(Q(writer__username__contains=word) |
                                          Q(title__contains=word) |
                                          Q(content__contains=word)).order_by('-id')[start: start + pageSize]
     elif field == 'writer':
         boardList = Board.objects.filter(
-            Q(writer__contains=word)).order_by('-id')[start: start + pageSize]
+            Q(writer__username__contains=word)).order_by('-id')[start: start + pageSize]
     elif field == 'title':
         boardList = Board.objects.filter(
             Q(title__contains=word)).order_by('-id')[start: start + pageSize]
@@ -173,11 +204,11 @@ def list_page(request):
     page = request.GET.get('page', 1)
     word = request.GET.get('word', '')
 
-    boardCount = Board.objects.filter(Q(writer__contains=word) |
+    boardCount = Board.objects.filter(Q(writer__username__contains=word) |
                                       Q(title__contains=word) |
                                       Q(content__contains=word)).count()
 
-    boardList = Board.objects.filter(Q(writer__contains=word) |
+    boardList = Board.objects.filter(Q(writer__username__contains=word) |
                                      Q(title__contains=word) |
                                      Q(content__contains=word)).order_by('-id')
 
@@ -213,7 +244,7 @@ def update_form(request, board_id):
 
 
 # update
-@csrf_exempt
+@ csrf_exempt
 def update(request):
 
     # 파일을 업로드를 했었을 경우
@@ -235,7 +266,7 @@ def update(request):
         fp.close()
 
     update_dto = Board(id,
-                       writer=request.POST['writer'],
+                       writer=request.user,
                        title=request.POST['title'],
                        content=request.POST['content'],
                        filename=fname,
@@ -255,12 +286,13 @@ def delete(request, board_id):
 
 
 # comment_insert
-@csrf_exempt
+@ csrf_exempt
+@login_required(login_url='/login/')
 def comment_insert(request):
     id = request.POST['id']
-    dto = Comment(board_id=id,
-                  writer='aa',
-                  content=request.POST['content'])
+    board = get_object_or_404(Board, pk=id)
+    dto = Comment(writer=request.user,
+                  content=request.POST['content'], board=board)
     dto.save()
     return redirect('/detail/'+id)
 

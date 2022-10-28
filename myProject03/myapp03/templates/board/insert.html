@@ -6,7 +6,8 @@
     <form action="/insert/" method="post" enctype="multipart/form-data">
         <div class="form-group">
             <label for="writer">writer:</label>
-            <input type="text" class="form-control" id="writer" placeholder="Enter writer" name="writer">
+            <input type="text" class="form-control" id="writer" placeholder="Enter writer" name="writer"
+                value="{{user.username}}" readonly>
         </div>
         <div class="form-group">
             <label for="title">title:</label>
