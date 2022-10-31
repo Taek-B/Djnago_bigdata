@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-3">
+    <div class="d-flex justify-content-end mb-3">
+        <form action="/webtoon" class="form-inline mr-3">
+            <select class="form-control mr-sm-1" name="field" id="field">
+                <option value="all">전체</option>
+                <option value="title">제목</option>
+                <option value="writer">작가</option>
+                <!-- 지정한 option이 안 풀리는 설정 -->
+                <script>
+                    $("#field").val("{{field}}")
+                </script>
+            </select>
+            <input type="text" class="form-control mr-sm-1" id="word" placeholder="Enter Search" name="word"
+                value="{{word}}">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <div>
+        <!-- {% get_static_prefix %} / 경로 / 파일명.확장자 -->
+        <!-- <img src="{% get_static_prefix %}images/{{img_data.plot}}" width="100%" height="100%"> -->
+    </div>
+    <table class="container table table-hover" style="text-align: center;">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>요일</th>
+                <th>제목</th>
+                <th>작가</th>
+                <th>별점</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- for문 시작(django) -->
+            {% for i in result %}
+            <tr>
+                <td>{{i.id}}</td>
+                <td>{{i.webDay}}</td>
+                <td>{{i.title}}</td>
+                <td>{{i.writer}}</td>
+                <td>{{i.score}}</td>
+            </tr>
+            <!-- for문 끝(django) -->
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

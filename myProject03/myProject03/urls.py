@@ -43,4 +43,7 @@ urlpatterns = [
     ############################
     path("melon/", views.melon),
     path("weather/", views.weather),
+    path("map/", views.map),
+    path("wordcloud/", views.wordcloud),
+    path("webtoon/", views.webtoon),
 ]

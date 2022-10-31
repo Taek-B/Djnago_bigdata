@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
-from myapp03.models import Board, Comment, Forecast
+from myapp03.models import Board, Comment, Forecast, Webtoon
 import math
 import urllib.parse
 from django.core.paginator import Paginator
@@ -19,9 +19,53 @@ import pandas as pd
 # 로그인 체크?
 from django.contrib.auth.decorators import login_required
 
+import json
+
+
 # Create your views here.
 
 UPLOAD_DIR = 'C:/Django_practice/upload/'
+
+
+#################################
+# webtoon
+def webtoon(request):
+    data = {}
+    bigdataProcess.webtoon_crawing(data)
+    # data
+    for i in data:
+        for j in data[i]:
+            dto = Webtoon(webDay=i, title=j[0], writer=j[1], score=j[2])
+            dto.save()
+
+    # 검색
+    word = request.GET.get('word', '')
+    field = request.GET.get('field', 'title')
+
+    if field == 'all':
+        boardList = Webtoon.objects.filter(Q(title__contains=word) |
+                                           Q(writer__contains=word)).order_by('-id')
+    elif field == 'title':
+        boardList = Webtoon.objects.filter(
+            Q(title__contains=word)).order_by('-id')
+    elif field == 'writer':
+        boardList = Webtoon.objects.filter(
+            Q(writer__contains=word)).order_by('-id')
+    else:
+        boardList = Webtoon.objects.all().order_by('-id')
+
+    context = {'field': field,
+               'word': word,
+               'boardList': boardList}
+
+    result = Webtoon.objects.filter(Q(title__contains=word))
+    result_pd = Webtoon.objects.filter(webDay='월요웹툰').values(
+        'score').annotate(dcount=Count('score')).values("dcount", "score")
+    print("result_pd query : ", str(result_pd.query))
+
+    df = pd.DataFrame(result_pd)
+    image_dic = bigdataProcess.webtoon_make_chart(result, df.score, df.dcount)
+    return render(request, 'bigdata/webtoon.html', {"result": result, "img_data": image_dic,  "context": context})
 
 
 #################################
@@ -56,6 +100,22 @@ def weather(request):
 
     return render(request, 'bigdata/weather_chart.html', {"img_data": image_dic, "result": result})
 
+
+# map
+def map(request):
+    bigdataProcess.map()
+    return render(request, 'bigdata/map.html')
+
+
+# wordcloud
+def wordcloud(requset):
+    w_path = "C:/Django_study03/myProject03/data/"
+    # json 읽기
+    data = json.loads(open(w_path+'4차 산업혁명.json',
+                      'r', encoding='utf-8').read())
+    # print(data)
+    bigdataProcess.make_wordCloud(data)
+    return render(requset, 'bigdata/wordchart.html', {'img_data': 'k_wordCloud.png'})
 #################################
 
 # index

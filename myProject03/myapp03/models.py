@@ -41,3 +41,10 @@ class Forecast(models.Model):
     wf = models.TextField(null=True)
     tmn = models.IntegerField(default=0)
     tmx = models.IntegerField(default=0)
+
+
+class Webtoon(models.Model):
+    webDay = models.CharField(null=False, max_length=500, default='')
+    title = models.TextField(null=True)
+    writer = models.TextField(null=True)
+    score = models.FloatField(default=0)
