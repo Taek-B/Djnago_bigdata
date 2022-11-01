@@ -59,13 +59,10 @@ def webtoon(request):
                'boardList': boardList}
 
     result = Webtoon.objects.filter(Q(title__contains=word))
-    result_pd = Webtoon.objects.filter(webDay='월요웹툰').values(
-        'score').annotate(dcount=Count('score')).values("dcount", "score")
-    print("result_pd query : ", str(result_pd.query))
 
-    df = pd.DataFrame(result_pd)
-    image_dic = bigdataProcess.webtoon_make_chart(result, df.score, df.dcount)
-    return render(request, 'bigdata/webtoon.html', {"result": result, "img_data": image_dic,  "context": context})
+    bigdataProcess.webtoon_wordcloud(result)
+
+    return render(request, 'bigdata/webtoon.html', {"result": result,  "context": context, "img_data": 'webtoon_wordCloud.png'})
 
 
 #################################
@@ -96,7 +93,7 @@ def weather(request):
     print("result_pd query : ", str(result_pd.query))
 
     df = pd.DataFrame(result_pd)
-    image_dic = bigdataProcess.weather_make_chart(result, df.wf, df.dcount)
+    image_dic = bigdataProcess.weather_make_chart(result_pd, df.wf, df.dcount)
 
     return render(request, 'bigdata/weather_chart.html', {"img_data": image_dic, "result": result})
 

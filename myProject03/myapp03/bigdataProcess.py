@@ -66,6 +66,7 @@ def webtoon_crawing(webtoon):
             # print('제목 :', webtoon_name)
             # print('작가 :', webtoon_writter)
             # print('별점 :', webtoon_scope)
+
             if Webtoon.objects.filter(title=webtoon_name).exists() == False:
                 datas.append(webtoon_name)
                 datas.append(webtoon_writter)
@@ -74,73 +75,42 @@ def webtoon_crawing(webtoon):
             # print('-'*100)
 
 
-def webtoon_make_chart(result, wfs, dcounts):
-    # 한글
+#
+def webtoon_wordcloud(datas):
+    message = ''
+
+    for item in datas:
+        if 'message' in item.keys():
+            message = message + re.sub(r'[^\w]', ' ', item['message'])+''
+
+    nlp = Okt()
+    # 명사 추출
+    message_N = nlp.nouns(message)
+    # 명사의 갯수 추출
+    count = Counter(message_N)
+
+    word_count = {}
+
+    for tag, counts in count.most_common(80):
+        if(len(str(tag)) > 1):
+            word_count[tag] = counts
+            # print("%s : %d" % (tag, counts))
+
     font_path = 'c:/Windows/fonts/malgun.ttf'
-    font_name = font_manager.FontProperties(fname=font_path).get_name()
-    rc('font', family=font_name)
+    wc = WordCloud(font_path, background_color='ivory', width=800, height=600)
 
-    # 월
-    mon = []
-    # 화
-    tue = []
-    # 수
-    wed = []
-    # 목
-    thu = []
-    # 금
-    fri = []
-    # 토
-    sat = []
-    # 일
-    sun = []
+    cloud = wc.generate_from_frequencies(word_count)
 
-    # 날짜(tmef)
-    xdata = []
-
-    for row in result.values_list():
-        mon.append(row[5])
-        tue.append(row[4])
-        wed.append(row[4])
-        thu.append(row[4])
-        fri.append(row[4])
-        sat.append(row[4])
-        sun.append(row[4])
-        xdata.append(row[2].split('-')[2])
-
-    # 이미지 청소한 후 이미지 넣기 위해
-    plt.cla()
-    plt.figure(figsize=(10, 6))
-    plt.plot(xdata, mon, label='월요일')
-    plt.plot(xdata, tue, label='화요일')
-    plt.plot(xdata, low, label='수요일')
-    plt.plot(xdata, low, label='목요일')
-    plt.plot(xdata, low, label='금요일')
-    plt.plot(xdata, low, label='토요일')
-    plt.plot(xdata, low, label='일요일')
-    plt.legend()
-    # 이미지 저장
-    plt.savefig(os.path.join(STATIC_DIR, 'images\\webtoon_days.png'), dpi=300)
-
-    # plt.cla()
-    # plt.bar(wfs, dcounts)
-    # plt.savefig(os.path.join(STATIC_DIR, 'images\\weather_bar.png'), dpi=300)
-
-    # plt.cla()
-    # plt.pie(dcounts, labels=wfs, autopct='%.1f%%')
-    # plt.savefig(os.path.join(STATIC_DIR, 'images\\weather_pie.png'), dpi=300)
-
-    image_dic = {
-        'plot': 'webtoon_days.png',
-        # 'bar': 'weather_bar.png',
-        # 'pie': 'weather_pie.png',
-    }
-
-    return image_dic
+    plt.figure(figsize=(8, 8))
+    plt.imshow(cloud)
+    plt.axis('off')
+    cloud.to_file('./static/images/webtoon_wordCloud.png')
 
 
 ############################################
 # 노래
+
+
 def melon_crawing():
     datas = []
 
@@ -213,9 +183,9 @@ def weather_make_chart(result, wfs, dcounts):
     xdata = []
 
     for row in result.values_list():
-        # high.append(row[5])
-        # low.append(row[4])
-        # xdata.append(row[2].split('-')[2])
+        high.append(row[5])
+        low.append(row[4])
+        xdata.append(row[2].split('-')[2])
         print(row)
     # 이미지 청소한 후 이미지 넣기 위해
     plt.cla()
