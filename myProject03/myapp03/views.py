@@ -60,8 +60,6 @@ def webtoon(request):
 
     result = Webtoon.objects.filter(Q(title__contains=word))
 
-    bigdataProcess.webtoon_wordcloud(result)
-
     return render(request, 'bigdata/webtoon.html', {"result": result,  "context": context, "img_data": 'webtoon_wordCloud.png'})
 
 

@@ -74,15 +74,11 @@ def webtoon_crawing(webtoon):
                 webtoon[days].append(datas)
             # print('-'*100)
 
-
-#
-def webtoon_wordcloud(datas):
+    message_list = Webtoon.objects.filter().values_list(
+        'title', flat=True).order_by('title')
     message = ''
-
-    for item in datas:
-        if 'message' in item.keys():
-            message = message + re.sub(r'[^\w]', ' ', item['message'])+''
-
+    for i in message_list:
+        message += i
     nlp = Okt()
     # 명사 추출
     message_N = nlp.nouns(message)
@@ -109,8 +105,6 @@ def webtoon_wordcloud(datas):
 
 ############################################
 # 노래
-
-
 def melon_crawing():
     datas = []
 
